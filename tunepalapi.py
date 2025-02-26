@@ -40,7 +40,7 @@ class TunePalAPI:
 
     """Adds a song, but only if it isn't already in the list"""
     def add_song(self, title: str, artist: str, release_year: str):
-        self.songs.add(Song(artist, title, release_year))
+        self.songs.append(Song(title, artist, release_year))
 
     """Return a page of songs, use next_page and previous_page to change the window"""
     def get_songs(self):
