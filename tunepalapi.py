@@ -28,7 +28,7 @@ class TunePalAPI:
     def __init__(self, page_size=None):
 
         self.page_size = page_size
-        self.current_page = 0
+        self.current_page_index = 0
         with open('songlist.csv') as csvfile:
             reader = csv.DictReader(csvfile)
             for row in reader:
@@ -53,11 +53,14 @@ class TunePalAPI:
 
     """Return a page of songs, use next_page and previous_page to change the window"""
     def get_songs(self):
-        return self._build_song_window(self.songs)
+        if self.page_size is None:
+            raise ValueError("Page size cannot be None")
+        else:
+            return self._build_song_window(self.songs)
 
     """Tells the API to move to the previous page"""
     def next_page(self):
-        self.current_page = self.current_page + 1
+        self.current_page_index = self.current_page_index + 1
 
     """Tells the API to move to the next page"""
     def previous_page(self):
