@@ -1,5 +1,6 @@
 from unittest import TestCase
 from tunepalapi import TunePalAPI
+from collections import Counter
 
 class TestTunePalAPI(TestCase):
     api = TunePalAPI()
@@ -36,3 +37,9 @@ class TestTunePalAPI(TestCase):
         self.api.add_song("Od Tatier k Dunaju", "Vašo Patejdl", 1990)
         self.assertIn(("Od Tatier k Dunaju", "Vašo Patejdl", 1989), [(song.title, song.artist, song.release_year) for song in self.api.songs])
         self.assertIn(("Od Tatier k Dunaju", "Vašo Patejdl", 1990), [(song.title, song.artist, song.release_year) for song in self.api.songs])
+
+    def test_add_song_same_song_added_twice(self):
+        self.api.add_song("Kočka", "Ján Baláž", 1994)
+        self.api.add_song("Kočka", "Ján Baláž", 1994)
+        song_counts = Counter((song.title, song.artist, song.release_year) for song in self.api.songs)
+        self.assertEqual(song_counts[("Kočka", "Ján Baláž", 1994)], 1)
