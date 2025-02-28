@@ -25,3 +25,14 @@ class TestTunePalAPI(TestCase):
         self.api.add_song("Fero", "Elán", 1985)
         self.api.add_song("Fero", "Elán", 1985)
         self.assertIn("Fero", [song.title for song in self.api.songs])
+
+    def test_add_song_empty_title(self):
+        self.api.add_song("", "Jožo Ráž", 2006)
+        self.assertIn("Jožo Ráž", [song.artist for song in self.api.songs])
+        self.assertIn("", [song.title for song in self.api.songs])
+
+    def test_add_song_same_name_and_artist_different_year(self):
+        self.api.add_song("Od Tatier k Dunaju", "Vašo Patejdl", 1989)
+        self.api.add_song("Od Tatier k Dunaju", "Vašo Patejdl", 1990)
+        self.assertIn(("Od Tatier k Dunaju", "Vašo Patejdl", 1989), [(song.title, song.artist, song.year) for song in self.api.songs])
+        self.assertIn(("Od Tatier k Dunaju", "Vašo Patejdl", 1990), [(song.title, song.artist, song.year) for song in self.api.songs])
