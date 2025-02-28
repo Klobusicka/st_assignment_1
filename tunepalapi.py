@@ -12,6 +12,12 @@ class Song:
         self.artist = artist
         self.release_year = release_year
 
+    "Added equality operator (to check for duplicates)"
+    def __eq__(self, other):
+        if isinstance(other, Song):
+            return (self.title, self.artist, self.release_year) == (other.title, other.artist, other.release_year)
+        return False
+
 
 class TunePalAPI:
 
@@ -39,8 +45,11 @@ class TunePalAPI:
         return song_list[first_index:last_index]
 
     """Adds a song, but only if it isn't already in the list"""
+    "Added check for duplicate songs"
     def add_song(self, title: str, artist: str, release_year: str):
-        self.songs.append(Song(title, artist, release_year))
+        song_to_add = Song(title, artist, release_year)
+        if not song_to_add in self.songs:
+            self.songs.append(song_to_add)
 
     """Return a page of songs, use next_page and previous_page to change the window"""
     def get_songs(self):
