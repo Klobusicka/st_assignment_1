@@ -94,38 +94,35 @@ class TunePalAPI:
 
 
 class User:
-    users = []
-    active_sessions = {}
 
     def __init__(self, username: str, password: str):
         self.username = username
         self.password = password
         self.my_songs = []
         self.shopping_basket = []
-        User.users.append(self)
+        self.users = []
+        self.is_logged_in = False
 
     def register(self, username: str, password: str):
         if any(user.username == username for user in self.users):
             raise ValueError("Username already registered")
-        return User(username, password)
+        new_user = User(username, password)
+        self.users.append(new_user)
+        return new_user
 
     def login(self, username: str, password: str, device: str):
-        user = next((user for user in self.users if user.username == username and user.password == password), None)
-        if not user:
-            raise ValueError("Invalid username or password")
+        for user in self.users:
+            if user.username == username and user.password == password:
+                user.is_logged_in = True
+                return user
 
-        if not username in self.active_sessions:
-            self.active_sessions[username] = []
-
-        if len(self.active_sessions[username]) > 2:
-            raise ValueError("Too many active sessions")
-
-        self.active_sessions[username].append(device)
-        return user
+        raise ValueError("Invalid username or password")
 
     def logout(self, username: str, device: str):
-        if username in self.active_sessions and device in self.active_sessions[username]:
-            self.active_sessions[username].remove(device)
+        if self.is_logged_in:
+            self.is_logged_in = False
+        else:
+            raise ValueError("User not logged in")
 
     def add_my_song(self, song: Song):
         if song not in self.my_songs:
