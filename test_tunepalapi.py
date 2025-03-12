@@ -1,5 +1,7 @@
 from unittest import TestCase
 from tunepalapi import TunePalAPI
+from tunepalapi import User
+from tunepalapi import Song
 from collections import Counter
 
 class TestTunePalAPI(TestCase):
@@ -72,3 +74,21 @@ class TestTunePalAPI(TestCase):
         first_page_songs = [song.title for song in first_page]
         second_page_songs = [song.title for song in second_page]
         self.assertNotEqual(first_page_songs, second_page_songs)
+
+class TestUser(TestCase):
+
+    def setUp(self):
+        self.user = User("username", "password")
+
+
+    def test_creating_user(self):
+        self.assertEqual(self.user.username, "username")
+        self.assertEqual(self.user.password, "password")
+
+    def test_user_register_new_user(self):
+        user = self.user.register("username", "password")
+        self.assertIn(user, self.user.users)
+
+    def test_user_register_existing_user(self):
+        user = self.user.register("username", "password")
+        self.assertRaises(ValueError, self.user.register, user.username, "password")
