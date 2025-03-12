@@ -91,3 +91,49 @@ class TunePalAPI:
             if song.release_year > release_year:
                 hits.append(song)
         return self._build_song_window(hits)
+
+
+class User:
+    users = []
+    active_sessions = {}
+
+    def __init__(self, username: str, password: str):
+        self.username = username
+        self.password = password
+        self.my_songs = []
+        self.shopping_basket = []
+        User.users.append(self)
+
+    def register(self, username: str, password: str):
+        if any(user.username == username for user in self.users):
+            raise ValueError("Username already registered")
+        return User(username, password)
+
+    def login(self, username: str, password: str, device: str):
+        user = next((user for user in self.users if user.username == username and user.password == password), None)
+        if not user:
+            raise ValueError("Invalid username or password")
+
+        if not username in self.active_sessions:
+            self.active_sessions[username] = []
+
+        if len(self.active_sessions[username]) > 2:
+            raise ValueError("Too many active sessions")
+
+        self.active_sessions[username].append(device)
+        return user
+
+    def logout(self, username: str, device: str):
+        if username in self.active_sessions and device in self.active_sessions[username]:
+            self.active_sessions[username].remove(device)
+
+    def add_my_song(self, song: Song):
+        if song not in self.my_songs:
+            self.my_songs.append(song)
+
+    def add_to_shopping_basket(self, song: Song):
+        self.shopping_basket.append(song)
+
+    def checkout(self):
+        self.my_songs.extend(self.shopping_basket)
+        self.shopping_basket = []
