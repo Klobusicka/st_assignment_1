@@ -1,6 +1,5 @@
 from unittest import TestCase
 from tunepalapi import TunePalAPI
-from tunepalapi import User
 from tunepalapi import Song
 from collections import Counter
 
@@ -75,60 +74,117 @@ class TestTunePalAPI(TestCase):
         second_page_songs = [song.title for song in second_page]
         self.assertNotEqual(first_page_songs, second_page_songs)
 
-class TestUser(TestCase):
+    def test_previous_page(self):
+        self.api.page_size = 10
+        self.api.current_page_index = 5
+        page_five = self.api.get_songs()
+        self.api.previous_page()
+        page_four = self.api.get_songs()
+        self.assertNotEqual(page_five, page_four)
+        self.assertEqual(self.api.current_page_index, 4)
 
-    def setUp(self):
-        self.user = User("username", "password")
-        self.user1 = User("username1", "password1")
-        self.user1.register("username1", "password1")
-        self.song1 = Song("song1", "artist1", "2001")
-        self.song2 = Song("song2", "artist2", "2002")
+    def test_next_page(self):
+        self.api.page_size = 10
+        self.api.current_page_index = 5
+        page_five = self.api.get_songs()
+        self.api.next_page()
+        page_six = self.api.get_songs()
+        self.assertNotEqual(page_five, page_six)
+        self.assertEqual(self.api.current_page_index, 6)
 
-    def test_creating_user(self):
-        self.assertEqual(self.user.username, "username")
-        self.assertEqual(self.user.password, "password")
+    def test_set_page_size(self):
+        self.api.page_size = 10
+        self.assertEqual(self.api.page_size, 10)
 
-    def test_user_register_new_user(self):
-        user = self.user.register("username", "password")
-        self.assertIn(user, self.user.users)
+    def test_search_by_name_one_result(self):
+        self.api.set_page_size(1)
+        self.api.add_song("Královna bielych tenisiek", "Elán", 1985)
+        result = self.api.search("Královna bielych tenisiek")
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0].title, "Královna bielych tenisiek")
+        self.assertEqual(result[0].artist, "Elán")
+        self.assertEqual(result[0].release_year, 1985)
 
-    def test_user_register_existing_user(self):
-        user = self.user.register("username", "password")
-        self.assertRaises(ValueError, self.user.register, user.username, "password")
+    def test_search_by_name_two_results(self):
+        self.api.set_page_size(2)
+        self.api.add_song("Kočka", "Ján Baláž", 1994)
+        self.api.add_song("Kočka Kočka", "Elán", 2001)
+        result = self.api.search("Kočka")
+        self.assertEqual(len(result), 2)
+        self.assertEqual(result[0].title, "Kočka")
+        self.assertEqual(result[0].artist, "Ján Baláž")
+        self.assertEqual(result[0].release_year, 1994)
+        self.assertEqual(result[1].title, "Kočka Kočka")
+        self.assertEqual(result[1].artist, "Elán")
+        self.assertEqual(result[1].release_year, 2001)
 
-    def test_user_login_successful(self):
-        user = self.user.register("username", "password")
-        self.user.login("username", "password", "device")
-        self.assertTrue(user.is_logged_in)
+    def test_search_by_artist_one_result(self):
+        self.api.set_page_size(1)
+        self.api.add_song("Od Tatier k Dunaju", "Vašo Patejdl", 1989)
+        result = self.api.search("Vašo")
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0].title, "Od Tatier k Dunaju")
+        self.assertEqual(result[0].artist, "Vašo Patejdl")
+        self.assertEqual(result[0].release_year, 1989)
 
-    def test_user_login_unsuccessful(self):
-        self.assertRaises(ValueError, self.user1.login, "username", "wrong_password", "device")
+    def test_search_by_artist_two_results(self):
+        self.api.set_page_size(2)
+        self.api.add_song("Od Tatier k Dunaju", "Vaso Patejdl", 1989)
+        self.api.add_song("Nepriznaná", "Vaso Patejdl", 1989)
+        result = self.api.search("Vaso Patejdl")
+        self.assertEqual(len(result), 2)
+        self.assertEqual(result[0].title, "Od Tatier k Dunaju")
+        self.assertEqual(result[0].artist, "Vaso Patejdl")
+        self.assertEqual(result[0].release_year, 1989)
+        self.assertEqual(result[1].title, "Nepriznaná")
+        self.assertEqual(result[1].artist, "Vaso Patejdl")
+        self.assertEqual(result[1].release_year, 1989)
 
-    def test_user_logout_successful(self):
-        user = self.user1.login("username1", "password1", "device")
-        user.logout("username1", "device")
-        self.assertFalse(user.is_logged_in)
+    def test_search_by_year_one_result(self):
+        self.api.set_page_size(1)
+        result = self.api.search("1985")
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0].title, "Take On Me")
+        self.assertEqual(result[0].artist, "a-ha")
+        self.assertEqual(result[0].release_year, "1985")
 
-    def test_user_logout_unsuccessful(self):
-        self.assertRaises(ValueError, self.user1.logout, "username1", "device")
+    def test_search_by_year_two_results(self):
+        self.api.set_page_size(2)
+        result = self.api.search("2002")
+        self.assertEqual(len(result), 2)
+        self.assertEqual(result[0].title, "When I'm Gone")
+        self.assertEqual(result[0].artist, "3 Doors Down")
+        self.assertEqual(result[0].release_year, "2002")
+        self.assertEqual(result[1].title, "Like a Stone")
+        self.assertEqual(result[1].artist, "Audioslave")
+        self.assertEqual(result[1].release_year, "2002")
 
-    def test_add_my_song(self):
-        self.user1.add_my_song(self.song1)
-        self.assertIn(self.song1, self.user1.my_songs)
+    def test_no_found_songs(self):
+        self.api.set_page_size(1)
+        result = self.api.search("0000")
+        self.assertEqual(len(result), 0)
 
-    def test_add_my_song_duplicate_song(self):
-        self.user1.add_my_song(self.song1)
-        self.user1.add_my_song(self.song1)
-        self.assertEqual(len(self.user1.my_songs), 1)
+    def test_get_songs_since_valid_year(self):
+        self.api.set_page_size(2)
+        result = self.api.get_songs_since("2000")
+        self.assertEqual(len(result), 2)
 
-    def test_add_to_shopping_basket(self):
-        self.user1.add_to_shopping_basket(self.song1)
-        self.assertIn(self.song1, self.user1.shopping_basket)
+    def test_get_songs_since_invalid_year(self):
+        self.api.set_page_size(2)
+        result = self.api.get_songs_since("500000")
+        self.assertEqual(len(result), 0)
 
-    def test_checkout(self):
-        self.user1.add_to_shopping_basket(self.song1)
-        self.user1.add_to_shopping_basket(self.song2)
-        self.user1.checkout()
-        self.assertIn(self.song1, self.user1.my_songs)
-        self.assertIn(self.song2, self.user1.my_songs)
-        self.assertEqual(self.user1.shopping_basket, [])
+    def test_equal_songs(self):
+        song1 = Song("Nie sme zlí", "Elán", 1982)
+        song2 = Song("Nie sme zlí", "Elán", 1982)
+        self.assertTrue(song1 == song2)
+
+    def test_not_equal_songs(self):
+        song1 = Song("Nie sme zlí", "Elán", 1982)
+        song2 = Song("Nepriznaná", "Vašo Patejdl", 1989)
+        self.assertFalse(song1 == song2)
+
+    def test_non_valid_song(self):
+        song1 = Song("Nie sme zlí", "Elán", 1982)
+        song2 = "song"
+        self.assertFalse(song1 == song2)
