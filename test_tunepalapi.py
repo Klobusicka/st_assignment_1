@@ -96,7 +96,10 @@ class TestTunePalAPI(TestCase):
         self.api.page_size = 10
         self.assertEqual(self.api.page_size, 10)
 
-    def test_search_by_name_one_result(self):
+    def test_set_invalid_page_size(self):
+        self.assertRaises(ValueError, self.api.set_page_size, -1)
+
+    def test_search_by_title_one_result(self):
         self.api.set_page_size(1)
         self.api.add_song("Královna bielych tenisiek", "Elán", 1985)
         result = self.api.search("Královna bielych tenisiek")
@@ -105,7 +108,7 @@ class TestTunePalAPI(TestCase):
         self.assertEqual(result[0].artist, "Elán")
         self.assertEqual(result[0].release_year, 1985)
 
-    def test_search_by_name_two_results(self):
+    def test_search_by_title_two_results(self):
         self.api.set_page_size(2)
         self.api.add_song("Kočka", "Ján Baláž", 1994)
         self.api.add_song("Kočka Kočka", "Elán", 2001)
@@ -159,7 +162,7 @@ class TestTunePalAPI(TestCase):
         self.assertEqual(result[1].artist, "Audioslave")
         self.assertEqual(result[1].release_year, "2002")
 
-    def test_no_found_songs(self):
+    def test_search_no_found_songs(self):
         self.api.set_page_size(1)
         result = self.api.search("0000")
         self.assertEqual(len(result), 0)

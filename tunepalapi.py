@@ -68,7 +68,10 @@ class TunePalAPI:
 
     """Set the page_size parameter, controllinig how many songs are returned"""
     def set_page_size(self, page_size: int):
-        self.page_size = page_size
+        if page_size < 0:
+            raise ValueError("Page size cannot be negative")
+        else:
+            self.page_size = page_size
 
     """The search() function matches any songs whose title or artist starts
         with the query provided. E.G. a query of "The" would match "The Killers"
@@ -77,7 +80,9 @@ class TunePalAPI:
     def search(self, starts_with_query: str):
         hits = []
         for song in self.songs:
-            if song.title.startswith(starts_with_query) or song.artist.startswith(starts_with_query) or str(song.release_year).startswith(starts_with_query):
+            if (song.title.startswith(starts_with_query) or
+                    song.artist.startswith(starts_with_query) or
+                    str(song.release_year).startswith(starts_with_query)):
                 hits.append(song)
         return self._build_song_window(hits)
 
@@ -91,5 +96,3 @@ class TunePalAPI:
             if str(song.release_year) > release_year:
                 hits.append(song)
         return self._build_song_window(hits)
-
-
