@@ -11,6 +11,7 @@ class User:
         self.shopping_basket = []
         self.users = []
         self.is_logged_in = False
+        self.number_of_used_devices = 0
 
     def register(self, username: str, password: str):
         if any(user.username == username for user in self.users):
@@ -22,13 +23,18 @@ class User:
     def login(self, username: str, password: str, device: str):
         for user in self.users:
             if user.username == username and user.password == password:
-                user.is_logged_in = True
+                self.is_logged_in = True
+                if self.number_of_used_devices >= 2:
+                    raise ValueError("Max 2 devices allowed")
+                else:
+                    self.number_of_used_devices += 1
                 return user
 
         raise ValueError("Invalid username or password")
 
-    def logout(self, username: str, device: str):
+    def logout(self):
         if self.is_logged_in:
+            self.number_of_used_devices -= 1
             self.is_logged_in = False
         else:
             raise ValueError("User not logged in")

@@ -27,18 +27,19 @@ class TestUser(TestCase):
     def test_user_login_successful(self):
         user = self.user.register("username", "password")
         self.user.login("username", "password", "device")
-        self.assertTrue(user.is_logged_in)
+        self.assertTrue(self.user.is_logged_in)
+        self.assertEqual(self.user.number_of_used_devices, 1)
 
     def test_user_login_unsuccessful(self):
         self.assertRaises(ValueError, self.user1.login, "username", "wrong_password", "device")
 
     def test_user_logout_successful(self):
         user = self.user1.login("username1", "password1", "device")
-        user.logout("username1", "device")
-        self.assertFalse(user.is_logged_in)
+        self.user1.logout()
+        self.assertFalse(self.user1.is_logged_in)
 
     def test_user_logout_unsuccessful(self):
-        self.assertRaises(ValueError, self.user1.logout, "username1", "device")
+        self.assertRaises(ValueError, self.user1.logout)
 
     def test_add_my_song(self):
         self.user1.add_my_song(self.song1)
@@ -60,3 +61,17 @@ class TestUser(TestCase):
         self.assertIn(self.song1, self.user1.my_songs)
         self.assertIn(self.song2, self.user1.my_songs)
         self.assertEqual(self.user1.shopping_basket, [])
+
+    def test_login_two_devices(self):
+        user = self.user.register("username", "password")
+        self.user.login("username", "password", "device")
+        self.assertTrue(self.user.is_logged_in)
+        self.assertEqual(self.user.number_of_used_devices, 1)
+        self.user.login("username", "password", "device2")
+        self.assertEqual(self.user.number_of_used_devices, 2)
+
+    def test_login_three_devices(self):
+        user = self.user.register("username", "password")
+        self.user.login("username", "password", "device1")
+        self.user.login("username", "password", "device2")
+        self.assertRaises(ValueError, self.user.login, "username", "password", "device3")
